@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddit Finance Dashboard - 24 Hour History</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Reddit Finance Dashboard - 24 Hour History</h1>
+    
+    <div id="lastRunTime"></div>
+    
+    <div class="button-group">
+        <button id="goButton">Go!</button>
+        <button id="editButton" class="edit-button">Edit Lists</button>
+    </div>
+
+    <div id="editContainer" class="edit-container">
+        <div class="edit-section">
+            <h3>Subreddits</h3>
+            <textarea id="subredditsEdit"></textarea>
+        </div>
+        <div class="edit-section">
+            <h3>Keywords</h3>
+            <textarea id="keywordsEdit"></textarea>
+        </div>
+        <div class="button-group">
+            <button id="saveButton" class="edit-button">Save</button>
+            <button id="resetButton" class="edit-button">Reset to Defaults</button>
+            <button id="cancelButton" class="edit-button">Cancel</button>
+        </div>
+    </div>
+
+    <div id="dashboard"></div>
+
+    <div id="completionPopup" class="popup-overlay">
+        <div class="popup">
+            <h3>Search Complete!</h3>
+            <div class="completion-stats">
+                <p id="subredditsSearched"></p>
+                <p id="matchingPosts"></p>
+                <p id="searchDuration"></p>
+            </div>
+            <button class="popup-button" onclick="closePopup()">Close</button>
+        </div>
+    </div>
+
+</body>
+<script src="redditTracker.js"></script>
+</html>
