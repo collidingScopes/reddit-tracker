@@ -23,6 +23,9 @@ let keywords = [...defaultData.keywords];
 const dashboardElement = document.getElementById('dashboard');
 const twentyFourHoursAgo = Date.now() / 1000 - (24 * 60 * 60);
 
+// Array to store all matching posts
+let allMatchingPosts = [];
+
 // JSONP implementation
 function jsonp(url) {
     return new Promise((resolve, reject) => {
@@ -39,7 +42,7 @@ function jsonp(url) {
     });
 }
 
-// Post fetching and display
+// Post fetching
 async function fetchSubredditPosts(subreddit, after = null) {
     try {
         const url = `https://www.reddit.com/r/${subreddit}/new.json?limit=100${after ? '&after=' + after : ''}`;
@@ -59,7 +62,8 @@ async function fetchSubredditPosts(subreddit, after = null) {
                 post.data.title.toLowerCase().includes(keyword.toLowerCase()) ||
                 post.data.selftext.toLowerCase().includes(keyword.toLowerCase())
             );
-            displayPost(post, subreddit);
+            post.data.subreddit = subreddit;
+            allMatchingPosts.push(post);
         });
 
         if (posts.length > 0 && 
@@ -72,21 +76,31 @@ async function fetchSubredditPosts(subreddit, after = null) {
     }
 }
 
-function displayPost(post, subreddit) {
-    const postElement = document.createElement('div');
-    postElement.className = 'post';
-    const postDate = new Date(post.data.created_utc * 1000);
+// Display posts in chronological order (newest first)
+function displayPosts() {
+    // Sort posts by created_utc (timestamp) in descending order (newest first)
+    allMatchingPosts.sort((a, b) => b.data.created_utc - a.data.created_utc);
+    
+    // Clear dashboard before adding sorted posts
+    dashboardElement.innerHTML = '';
+    
+    // Display all posts in sorted order
+    allMatchingPosts.forEach(post => {
+        const postElement = document.createElement('div');
+        postElement.className = 'post';
+        const postDate = new Date(post.data.created_utc * 1000);
 
-    postElement.innerHTML = `
-        <h2>${post.data.title}</h2>
-        <div class="post-info">
-            <p>Subreddit: r/${subreddit}</p>
-            <p>Posted on: ${postDate.toLocaleString()}</p>
-        </div>
-        <p class="keywords">Matching keywords: ${post.data.matchingKeywords.join(', ')}</p>
-        <a href="https://www.reddit.com${post.data.permalink}" target="_blank">Read more</a>
-    `;
-    dashboardElement.appendChild(postElement);
+        postElement.innerHTML = `
+            <h2>${post.data.title}</h2>
+            <div class="post-info">
+                <p>Subreddit: r/${post.data.subreddit}</p>
+                <p>Posted on: ${postDate.toLocaleString()}</p>
+            </div>
+            <p class="keywords">Matching keywords: ${post.data.matchingKeywords.join(', ')}</p>
+            <a href="https://www.reddit.com${post.data.permalink}" target="_blank">Read more</a>
+        `;
+        dashboardElement.appendChild(postElement);
+    });
 }
 
 // UI event handlers
@@ -118,8 +132,14 @@ async function fetchPosts() {
     const now = new Date();
     document.getElementById('lastRunTime').innerHTML = `Last search performed: ${now.toLocaleString()}`;
     
+    // Reset the array of matching posts
+    allMatchingPosts = [];
+    
     const fetchPromises = subreddits.map(subreddit => fetchSubredditPosts(subreddit));
     await Promise.all(fetchPromises);
+    
+    // Display sorted posts after all fetching is complete
+    displayPosts();
     
     const duration = ((performance.now() - startTime) / 1000).toFixed(2);
     const postsCount = document.querySelectorAll('.post').length;
