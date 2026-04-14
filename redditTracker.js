@@ -26,27 +26,13 @@ const twentyFourHoursAgo = Date.now() / 1000 - (24 * 60 * 60);
 // Array to store all matching posts
 let allMatchingPosts = [];
 
-// JSONP implementation
-function jsonp(url) {
-    return new Promise((resolve, reject) => {
-        const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-        window[callbackName] = (data) => {
-            delete window[callbackName];
-            document.body.removeChild(script);
-            resolve(data);
-        };
-
-        const script = document.createElement('script');
-        script.src = `${url}${url.includes('?') ? '&' : '?'}jsonp=${callbackName}`;
-        document.body.appendChild(script);
-    });
-}
-
 // Post fetching
 async function fetchSubredditPosts(subreddit, after = null) {
     try {
         const url = `https://www.reddit.com/r/${subreddit}/new.json?limit=100${after ? '&after=' + after : ''}`;
-        const response = await jsonp(url);
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const response = await res.json();
         const posts = response.data.children;
 
         const matchingPosts = posts.filter(post => 
